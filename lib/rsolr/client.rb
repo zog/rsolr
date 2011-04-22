@@ -147,10 +147,19 @@ class RSolr::Client
   end
   
   # 
-  def execute request_context
+  def execute_with_timeout *args
+    max_execution_time = defined?(RSOLR_MAX_EXECUTION_TIME) ? RSOLR_MAX_EXECUTION_TIME : 0
+    Timeout.timeout(max_execution_time) do
+      execute_without_timeout *args
+    end
+  end
+  
+  def execute_without_timeout request_context
     raw_response = connection.execute self, request_context
     adapt_response(request_context, raw_response) unless raw_response.nil?
   end
+  
+  alias :execute, :execute_with_timeout
   
   # +build_request+ accepts a path and options hash,
   # then prepares a normalized hash to return for sending
